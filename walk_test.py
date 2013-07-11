@@ -16,11 +16,11 @@ class Koopa(pygame.sprite.Sprite):
         self.loadImages()
         
         self.frame = 0
-        self.delay = 3
+        self.delay = 7
         self.pause = 0
 
         self.image = self.imgList[0]
-        self.image = pygame.transform.scale(self.imgList[self.frame], (100, 100))
+        self.image = pygame.transform.scale(self.imgList[self.frame], (48, 84))
         self.rect = self.image.get_rect()
         
     def loadImages(self):
@@ -31,20 +31,6 @@ class Koopa(pygame.sprite.Sprite):
         
         imgSize = (16, 28)
         offset = ((0, 0), (40, 0), (80, 0), (120, 0))
-        
-        '''
-        offset = []
-        
-        for row in range (1):
-            for col in range(8):
-                temprow = row
-                if row > 1:
-                    temprow = row*38
-                tempcol = col*32
-                
-                offset.append((tempcol, temprow))
-
-        '''
             
         for i in range(4):
             tmpImg = pygame.Surface(imgSize)
@@ -61,9 +47,9 @@ class Koopa(pygame.sprite.Sprite):
             if self.frame >= len(self.imgList):
                 self.frame = 0
                 
-            self.image = pygame.transform.scale(self.imgList[self.frame], (66, 100))
+            self.image = pygame.transform.scale(self.imgList[self.frame], (48, 84))
             self.rect = self.image.get_rect()
-            self.rect.center = (400, 250)
+            self.rect.center = (400, 100)
 
 class Shield(pygame.sprite.Sprite):
     def __init__(self):
