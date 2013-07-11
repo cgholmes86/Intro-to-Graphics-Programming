@@ -5,6 +5,7 @@
     Date Started: June 26, 2013
     Version: 4.0
     Description: Added in coins to help increase score and lives
+                 Attempted to add a Music class to control the music and sound
     
 """
  
@@ -15,7 +16,23 @@ pygame.init()
 #displays the app in a set size window
 screen = pygame.display.set_mode((640, 480))
 
-#create a class to control the 'plane' 
+class Sound:
+    def __init__(self):
+        "Music"
+    if not pygame.mixer:
+            print("problem with sound")
+    else:
+        pygame.mixer.init()
+        self.sndYay = pygame.mixer.Sound("Sound/smb3_power-up.ogg")
+        self.sndOops = pygame.mixer.Sound("Sound/smb3_pipe.ogg")
+        self.sndOneUp = pygame.mixer.Sound("Sound/smb3_1-up.ogg")
+        self.sndCoin = pygame.mixer.Sound("Sound/smb3_coin.ogg")
+        self.sndEnd = pygame.mixer.Sound("Sound/smb3_player_down.ogg")
+        self.sndMenu = pygame.mixer.Sound("menu.ogg")
+        #self.sndMusic = pygame.mixer.Sound("play.ogg")           
+        self.sndStart = pygame.mixer.Sound("Sound/smb3_new_world.ogg")
+
+#create a class to control mario 
 class Mario(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -23,17 +40,9 @@ class Mario(pygame.sprite.Sprite):
         self.image = self.image.convert()
         self.rect = self.image.get_rect()
         
-        if not pygame.mixer:
-            print("problem with sound")
-        else:
-            pygame.mixer.init()
-            self.sndYay = pygame.mixer.Sound("Sound/smb3_power-up.ogg")
-            self.sndOops = pygame.mixer.Sound("Sound/smb3_pipe.ogg")
-            self.sndOneUp = pygame.mixer.Sound("Sound/smb3_1-up.ogg")
-            self.sndCoin = pygame.mixer.Sound("Sound/smb3_coin.ogg")
-            #self.sndMenu = pygame.mixer.Sound("menu.ogg")
-            #self.sndMusic = pygame.mixer.Sound("engine.ogg")
-            #self.sndMusic.play(-1)
+        sound = Sound()
+        
+        #sound.sndMusic.play(-1)
     #sets where the sprite will be on screen and how it
     #moves based on mouse movement (y axis) 
     def update(self):
@@ -132,6 +141,10 @@ class Intro(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("Assets/mario_start.gif")
         self.rect = self.image.get_rect()
+        
+        sound = Sound()
+        
+        sound.sndMenu.play(-1)
     
 def game():
     pygame.display.set_caption("Mario Flyer!")
@@ -200,6 +213,8 @@ def game():
             scoreboard.lives -= 1
             if scoreboard.lives <= 0:
                 keepGoing = False
+                mario.sndOops.stop()
+                mario.sndEnd.play()
             for theKoopa in hitKoopas:
                 theKoopa.reset()
                 
@@ -221,7 +236,7 @@ def game():
         
         pygame.display.flip()
      
-    #mario.sndMusic.stop()
+    mario.sndMusic.stop()
     #return mouse cursor
     pygame.mouse.set_visible(True) 
     return scoreboard.score
@@ -230,6 +245,7 @@ def instructions(score):
     pygame.display.set_caption("Mario Flyer!")
 
     intro = Intro()
+    
     
     allSprites = pygame.sprite.Group(intro)
     insFont = pygame.font.SysFont(None, 50)
@@ -255,11 +271,11 @@ def instructions(score):
         tempLabel = insFont.render(line, 1, (255, 255, 255))
         insLabels.append(tempLabel)
  
-    keepGoing = True
+    keepGoing = True    
     clock = pygame.time.Clock()
     pygame.mouse.set_visible(False)
     while keepGoing:
-        clock.tick(30)
+        clock.tick(30)        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 keepGoing = False
@@ -267,6 +283,7 @@ def instructions(score):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 keepGoing = False
                 donePlaying = False
+                intro.sndStart.play()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     keepGoing = False
@@ -280,7 +297,7 @@ def instructions(score):
 
         pygame.display.flip()
         
-    #mario.sndMusic.stop()    
+    #intro.sndMenu.stop()    
     pygame.mouse.set_visible(True)
     return donePlaying
         

@@ -27,7 +27,7 @@ class Plane(pygame.sprite.Sprite):
             pygame.mixer.init()
             self.sndYay = pygame.mixer.Sound("yay.ogg")
             self.sndThunder = pygame.mixer.Sound("thunder.ogg")
-            self.sndEngine = pygame.mixer.Sound("engine.ogg")
+            self.sndEngine = pygame.mixer.Sound("Sound/sky_theme.ogg")
             self.sndEngine.play(-1)
         
     def update(self):

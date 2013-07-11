@@ -20,7 +20,7 @@ pygame.init()
 #displays the app in a set size window
 screen = pygame.display.set_mode((640, 480))
 
-#create a class to control the 'plane' 
+#create a class to control Mario
 class Mario(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -36,8 +36,8 @@ class Mario(pygame.sprite.Sprite):
             self.sndOops = pygame.mixer.Sound("Sound/smb3_pipe.ogg")
             self.sndOneUp = pygame.mixer.Sound("Sound/smb3_1-up.ogg")
             #self.sndMenu = pygame.mixer.Sound("menu.ogg")
-            #self.sndMusic = pygame.mixer.Sound("engine.ogg")
-            #self.sndMusic.play(-1)
+            self.sndMusic = pygame.mixer.Sound("sky_theme.ogg")
+            self.sndMusic.play(-1)
     #sets where the sprite will be on screen and how it
     #moves based on mouse movement (y axis) 
     def update(self):
@@ -180,7 +180,7 @@ def game():
         
         pygame.display.flip()
      
-    #mario.sndMusic.stop()
+    mario.sndMusic.stop()
     #return mouse cursor
     pygame.mouse.set_visible(True) 
     return scoreboard.score
@@ -239,7 +239,7 @@ def instructions(score):
 
         pygame.display.flip()
         
-    #mario.sndMusic.stop()    
+    mario.sndMusic.stop()    
     pygame.mouse.set_visible(True)
     return donePlaying
         
