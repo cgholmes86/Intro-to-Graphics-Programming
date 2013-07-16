@@ -43,6 +43,7 @@ class Mario(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.imgList[self.frame], (36, 42))
         self.rect = self.image.get_rect()
         
+        #loads the sound/music for the game
         if not pygame.mixer:
             print("problem with sound")
         else:
@@ -81,7 +82,7 @@ class Mario(pygame.sprite.Sprite):
             if self.frame >= len(self.imgList):
                 self.frame = 0
             
-            
+            #functionality for controlling Mario with the mouse
             mousex, mousey = pygame.mouse.get_pos()
             self.rect.center = (50, mousey)    
             self.image = pygame.transform.scale(self.imgList[self.frame], (36, 42))
@@ -95,6 +96,7 @@ class Mushroom(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (18, 18))
         self.reset()
         
+        #sets the horizontal movement
         self.dx = 7
     
     def update(self):
@@ -116,7 +118,7 @@ class Coin(pygame.sprite.Sprite):
         self.pause = 0
         
         self.dx = random.randrange(6, 12)
-        self.dy = random.randrange(-4, 4)
+        #self.dy = random.randrange(-4, 4)
 
         self.image = self.imgList[0]
         self.image = pygame.transform.scale(self.imgList[self.frame], (13, 15))
@@ -128,6 +130,8 @@ class Coin(pygame.sprite.Sprite):
         imgMaster = pygame.image.load("Assets/coin_animate.gif")
         imgMaster = imgMaster.convert()
         
+        
+        #image array to hold each image from an image master
         self.imgList = []
         
         imgSize = (13, 17)
@@ -151,9 +155,9 @@ class Coin(pygame.sprite.Sprite):
             
                 
             self.image = pygame.transform.scale(self.imgList[self.frame], (13, 15))
-            #self.rect = self.image.get_rect()
-            #self.rect.center = (400, 100)
-        self.rect.centery += self.dy
+    
+        #moves the coins in a direction set through the rest function
+        #self.rect.centery += self.dy
         self.rect.centerx -= self.dx
         if self.rect.right < (screen.get_width() - 640):
             self.reset()        
@@ -161,8 +165,9 @@ class Coin(pygame.sprite.Sprite):
     def reset(self):
         self.rect.right = 640
         self.rect.centery = random.randrange(0, screen.get_height())
+        #coin movement is randomized based on ranges provided
         self.dx = random.randrange(3, 9)
-        self.dy = random.randrange(-3, 3)
+        #self.dy = random.randrange(-3, 3)
 
 class Koopa(pygame.sprite.Sprite):
     def __init__(self):
@@ -173,8 +178,8 @@ class Koopa(pygame.sprite.Sprite):
         self.delay = 7
         self.pause = 0
         
-        self.dx = random.randrange(8, 12)
-        self.dy = random.randrange(-5, 6)
+        self.dx = random.randrange(10, 15)
+        self.dy = random.randrange(-3, 7)
 
         self.image = self.imgList[0]
         self.image = pygame.transform.scale(self.imgList[self.frame], (24, 42))
@@ -186,6 +191,7 @@ class Koopa(pygame.sprite.Sprite):
         imgMaster = pygame.image.load("Assets/koopa_sheet.gif")
         imgMaster = imgMaster.convert()
         
+        #array for image master
         self.imgList = []
         
         imgSize = (16, 28)
@@ -209,8 +215,7 @@ class Koopa(pygame.sprite.Sprite):
             
                 
             self.image = pygame.transform.scale(self.imgList[self.frame], (24, 42))
-            #self.rect = self.image.get_rect()
-            #self.rect.center = (400, 100)
+            
         self.rect.centery += self.dy
         self.rect.centerx -= self.dx
         if self.rect.right < (screen.get_width() - 640):
@@ -228,16 +233,19 @@ class Bulletbill(pygame.sprite.Sprite):
         self.image = pygame.image.load("Assets/bill.gif")
         self.image = self.image.convert()
         self.rect = self.image.get_rect()
-        self.image = pygame.transform.scale(self.image, (34, 32))
+        self.image = pygame.transform.scale(self.image, (38, 36))
         self.reset()
         
-        self.dx = 8
-        self.countdown = 400
+        self.dx = 12
+        #custom timer to have bullet bill appear periodically
+        #instead of once he reaches the edge of the screen/hits Mario
+        self.countdown = 300
         
         if not pygame.mixer:
             print("problem with sound")
         else:
             pygame.mixer.init(48000)
+            #sound for when bullet bill appears
             self.sndThud = pygame.mixer.Sound("Sound/thud.ogg")
             self.sndThud.play()
     
@@ -250,9 +258,10 @@ class Bulletbill(pygame.sprite.Sprite):
                 self.sndThud.play()
             
     def reset(self):
+        #resets bill and his countdown timer
         self.rect.right = 680
         self.rect.centery = random.randrange(0, screen.get_height())
-        self.countdown = 400
+        self.countdown = 300
         
    
 class MKingdom(pygame.sprite.Sprite):
@@ -280,6 +289,7 @@ class Scoreboard(pygame.sprite.Sprite):
         self.font = pygame.font.SysFont("None", 50)
         
     def update(self):
+        #displays lives (as 1ups), the score, and coins
         self.text = "1ups: %d, score: %d, coins: %d" % (self.lives, self.score, self.coins)
         self.image = self.font.render(self.text, 1, (255, 255, 0))
         self.rect = self.image.get_rect()
@@ -287,6 +297,7 @@ class Scoreboard(pygame.sprite.Sprite):
 class Intro(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
+        #displays a separate start screen from the game scroll
         self.image = pygame.image.load("Assets/mario_start.gif")
         self.rect = self.image.get_rect()
         
@@ -294,6 +305,7 @@ class Intro(pygame.sprite.Sprite):
             print("problem with sound")
         else:
             pygame.mixer.init(48000)
+            #loads separate menu music
             self.sndMenu = pygame.mixer.Sound("Sound/world_map.ogg")
             self.sndMenu.play(-1)
     
@@ -304,18 +316,19 @@ def game():
     background.fill((0, 0, 0))
     screen.blit(background, (0, 0))
     mario = Mario()    
+    #plays the start sound once, as the game transitions from menu to game screen
     mario.sndStart.play()
     mushroom = Mushroom()
     #creates an array of coins, easier to add/remove as necessary
     coins = []
-    for coin in range(1, 6):
+    for coin in range(1, 8):
         coin = Coin()
         coins.append(coin)
     
     bill = Bulletbill()
     #creates an array for koopas, makes it easier to add/remove as necessary
     koopas = []
-    for koopa in range(1,6):
+    for koopa in range(1,7):
         koopa = Koopa()
         koopas.append(koopa)
 
@@ -343,6 +356,7 @@ def game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 keepGoing = False
+                #added the ability to quit to the menu if escape key pressed
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     keepGoing = False
