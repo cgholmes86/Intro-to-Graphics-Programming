@@ -15,14 +15,16 @@ class Koopa(pygame.sprite.Sprite):
         self.loadImages()
         
         self.frame = 0
-        self.delay = 0
+        self.delay = 7
         self.pause = 0
         
-        self.dx = 3
+        self.dx = random.randrange(6, 12)
+        self.dy = random.randrange(-4, 4)
 
         self.image = self.imgList[0]
-        self.image = pygame.transform.scale(self.imgList[self.frame], (16, 28))
+        self.image = pygame.transform.scale(self.imgList[self.frame], (24, 42))
         self.rect = self.image.get_rect()
+        
         self.reset()
         
     def loadImages(self):
@@ -49,15 +51,16 @@ class Koopa(pygame.sprite.Sprite):
             if self.frame >= len(self.imgList):
                 self.frame = 0
             
-              
-            self.image = pygame.transform.scale(self.imgList[self.frame], (16, 28))
-            self.rect = self.image.get_rect()
-#             self.rect.center = (400, 250)
-            self.rect.centery += self.dy
-            self.rect.centerx -= self.dx
-            if self.rect.right < (screen.get_width() - 640):
-                self.reset()  
-
+            
+                
+            self.image = pygame.transform.scale(self.imgList[self.frame], (24, 42))
+            #self.rect = self.image.get_rect()
+            #self.rect.center = (400, 100)
+        self.rect.centery += self.dy
+        self.rect.centerx -= self.dx
+        if self.rect.right < (screen.get_width() - 640):
+            self.reset()        
+            
     def reset(self):
         self.rect.right = 640
         self.rect.centery = random.randrange(0, screen.get_height())
@@ -84,7 +87,7 @@ def main():
     
     shieldchk = 0
     
-    allSprites = pygame.sprite.Group(level, koopa)
+    allSprites = pygame.sprite.Group(koopa)
     
     clock = pygame.time.Clock()
     keepGoing = True

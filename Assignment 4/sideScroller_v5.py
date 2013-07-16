@@ -2,9 +2,9 @@
     side scroller
     Name: Clay Holmes
     Filename: sideScroller_v5.py
-    Date Started: June 23, 2013
+    Date Started: July 8, 2013
     Version: 5
-    Description: 
+    Description: Added in bullet bill, animation for mario
     
 """
  
@@ -27,7 +27,8 @@ class MarioMove(pygame.sprite.Sprite):
         self.pause = 0
 
         self.image = self.imgList[0]
-        self.image = pygame.transform.scale(self.imgList[self.frame], (24, 28))
+        #scaled by a factor of 1.5 the original size
+        self.image = pygame.transform.scale(self.imgList[self.frame], (36, 42))
         self.rect = self.image.get_rect()
         
         if not pygame.mixer:
@@ -39,10 +40,10 @@ class MarioMove(pygame.sprite.Sprite):
             self.sndOneUp = pygame.mixer.Sound("Sound/smb3_1-up.ogg")
             self.sndCoin = pygame.mixer.Sound("Sound/smb3_coin.ogg")            
             self.sndEnd = pygame.mixer.Sound("Sound/smb3_player_down.ogg")
-            #self.sndMenu = pygame.mixer.Sound("menu.ogg")
             self.sndMusic = pygame.mixer.Sound("Sound/sky_theme.ogg")
             self.sndMusic.play(-1)
-        
+    
+    #loads master image and puts the offsets into an array    
     def loadImages(self):
         imgMaster = pygame.image.load("Assets/mario_move.gif")
         imgMaster = imgMaster.convert()
@@ -70,15 +71,15 @@ class MarioMove(pygame.sprite.Sprite):
             
             mousex, mousey = pygame.mouse.get_pos()
             self.rect.center = (50, mousey)    
-            self.image = pygame.transform.scale(self.imgList[self.frame], (24, 28))
-#             self.rect = self.image.get_rect()
+            self.image = pygame.transform.scale(self.imgList[self.frame], (36, 42))
 
 class Mushroom(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("Assets/mushroom.gif")
-        self.image = self.image.convert()
+        self.image = self.image.convert()        
         self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale(self.image, (18, 18))
         self.reset()
         
         self.dx = 5
@@ -89,7 +90,7 @@ class Mushroom(pygame.sprite.Sprite):
             self.reset()
             
     def reset(self):
-        self.rect.right = 640
+        self.rect.right = 680
         self.rect.centery = random.randrange(0, screen.get_height())
 
 class Coin(pygame.sprite.Sprite):
@@ -131,6 +132,39 @@ class Koopa(pygame.sprite.Sprite):
         self.rect.centery = random.randrange(0, screen.get_height())
         self.dx = random.randrange(6, 12)
         self.dy = random.randrange(-4, 4)
+
+class Bulletbill(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Assets/bill.gif")
+        self.image = self.image.convert()
+        self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale(self.image, (30, 28))
+        self.reset()
+        
+        self.dx = 5
+        self.countdown = 500
+        
+        if not pygame.mixer:
+            print("problem with sound")
+        else:
+            pygame.mixer.init(48000)
+            self.sndThud = pygame.mixer.Sound("Sound/thud.ogg")
+            self.sndThud.play()
+    
+    def update(self):
+        self.rect.centerx -= self.dx
+        self.countdown -= 1
+        if self.rect.right < (screen.get_width() - 640):
+            if self.countdown <= 0:
+                self.reset()
+                self.sndThud.play()
+            
+    def reset(self):
+        self.rect.right = 680
+        self.rect.centery = random.randrange(0, screen.get_height())
+        self.countdown = 500
+        
    
 class MKingdom(pygame.sprite.Sprite):
     def __init__(self):
@@ -187,6 +221,7 @@ def game():
         coin = Coin(background, )
         coins.append(coin)
     
+    bill = Bulletbill()
     koopa1 = Koopa()
     koopa2 = Koopa()
     koopa3 = Koopa()
@@ -203,6 +238,7 @@ def game():
     friendSprites = pygame.sprite.OrderedUpdates(mKingdom, mushroom, mario)
     coinSprites = pygame.sprite.Group(coins)
     koopaSprites = pygame.sprite.Group(koopa1, koopa2, koopa3)
+    billSprites = pygame.sprite.Group(bill)
     scoreSprite = pygame.sprite.Group(scoreboard)
 
     clock = pygame.time.Clock()
@@ -249,6 +285,16 @@ def game():
             for theKoopa in hitKoopas:
                 theKoopa.reset()
                 
+        hitBill = pygame.sprite.spritecollide(mario, billSprites, False)
+        if hitBill:
+            mario.sndOops.play()
+            scoreboard.lives -= 1
+            if scoreboard.lives <= 0:
+               keepGoing = False
+            for theBill in hitBill:
+                bill.rect.right = -100
+            
+                
         #mario gains a 1-up and the 1up variable is increased by 500        
         if scoreboard.score == oneUp:
             mario.sndOneUp.play()
@@ -258,11 +304,13 @@ def game():
         friendSprites.update()
         coinSprites.update()
         koopaSprites.update()
+        billSprites.update()
         scoreSprite.update()
         
         friendSprites.draw(screen)
         coinSprites.draw(screen)
         koopaSprites.draw(screen)
+        billSprites.draw(screen)
         scoreSprite.draw(screen)
         
         pygame.display.flip()

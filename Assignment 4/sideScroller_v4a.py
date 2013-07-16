@@ -2,7 +2,7 @@
     side scroller
     Name: Clay Holmes
     Filename: sideScroller_v4a.py
-    Date Started: June 23, 2013
+    Date Started: June 28, 2013
     Version: 4.a
     Description: Fixed audio issues from version 4
     

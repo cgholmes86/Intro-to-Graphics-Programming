@@ -239,7 +239,7 @@ def instructions(score):
 
         pygame.display.flip()
         
-    mario.sndMusic.stop()    
+#     mario.sndMusic.stop()    
     pygame.mouse.set_visible(True)
     return donePlaying
         
