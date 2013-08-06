@@ -1,18 +1,12 @@
 '''
-Created on Jul 31, 2013
+Created on 
 
-@author: Clay
-'''
-
-'''
-side scroller
     Name: Clay Holmes
-    Filename: sideScroller_v1.py
-    Date Started: June 17, 2013
+    Filename: doddleShip_v1.py
+    Date Started: July 26, 2013
     Version: 1.0
-    Description: Taking away elements of mailpilot.py (islands, clouds)
-                 and making the scrolling background move in a horizontal motion.
-                 Worked out how to get the background to loop properly
+    Description: 
+    
 '''
     
 import pygame, random

@@ -1,45 +1,48 @@
 '''
-Created on Jul 31, 2013
 
-@author: Clay
-'''
-
-'''
-side scroller
+    Doodle Ship!
     Name: Clay Holmes
-    Filename: sideScroller_v1.py
-    Date Started: June 17, 2013
-    Version: 1.0
-    Description: Taking away elements of mailpilot.py (islands, clouds)
-                 and making the scrolling background move in a horizontal motion.
-                 Worked out how to get the background to loop properly
+    Filename: doodleShip_v4.py
+    Date Started: Aug 3, 2013
+    Version: 4.0
+    Description: 
+    
 '''
     
-import pygame, random, math
+import pygame, random, math, os.path
 from pygame.locals import *
 pygame.init()
 
 screen = pygame.display.set_mode((800, 600))
 
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+
+def load_image(file):
+    #adapted from aliens.py, found in pygame expamples
+    "loads an image, prepares it for play"
+    file = os.path.join(main_dir, 'Assets\Images', file)
+    try:
+        surface = pygame.image.load(file)
+    except pygame.error:
+        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error()))
+    return surface.convert()
 
 class Ship(pygame.sprite.Sprite):
-    def __init__(self, shell):        
-        self.shell = shell
+    def __init__(self):        
         pygame.sprite.Sprite.__init__(self)
         self.loadImages()
         self.screenRect = Rect(0, 0, 800, 600)
         
-        self.charge = 15
-        self.dir = 0
+        self.maxBullets = 5
+        self.reloading = 0
+        
         self.frame = 0
         self.delay = 0
         self.pause = 0
-        self.thrust = 2
-        self.dy = 0
-        self.gravity = 2
+        
 
         self.image = self.imgList[0]
-        #scaled by a factor of 1.5 the original size
+        
         self.image = pygame.transform.scale(self.imgList[self.frame], (120, 100))
         self.rect = self.image.get_rect()
         
@@ -50,6 +53,8 @@ class Ship(pygame.sprite.Sprite):
             pygame.mixer.init(48000, 16, 2, 4096)
             self.sndMusic = pygame.mixer.Sound("Assets/Sound/heavy.ogg")
             self.sndShoot = pygame.mixer.Sound("Assets/Sound/ship_shoot.ogg")
+            self.sndCrash = pygame.mixer.Sound("Assets/Sound/ship_hit.ogg")
+            self.sndCrash.set_volume(0.2)
             self.sndShoot.set_volume(0.5)
             self.sndMusic.play(-1)
         
@@ -72,8 +77,6 @@ class Ship(pygame.sprite.Sprite):
             self.imgList.append(tmpImg)
     
     def update(self):
-        self.dy -= self.gravity
-        self.checkKeys()
         self.pause += 1
         if self.pause >= self.delay:
             self.pause = 0
@@ -82,84 +85,36 @@ class Ship(pygame.sprite.Sprite):
                 self.frame = 0
             
             #functionality for controlling Mario with the mouse
-            #mousex, mousey = pygame.mouse.get_pos()
-            #self.rect.center = (75, mousey)
-            self.rect = self.rect.clamp(self.screenRect)    
+            mousex, mousey = pygame.mouse.get_pos()
+            self.rect.center = (75, mousey)    
             self.image = pygame.transform.scale(self.imgList[self.frame], (120, 100))
+            self.get_pos()
             
-    
-    def checkKeys(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            self.dy -= self.thrust
-            
-        if keys[pygame.K_DOWN]:
-            self.dy += self.thrust
+    def get_pos(self):
+        pos = self.rect.centery
+        print "Position", pos
+        return pos
+                        
+class Bullet(pygame.sprite.Sprite):    
+    speed = -11
+    images = []
+    def __init__(self, pos):        
+        pygame.sprite.Sprite.__init__(self, self.containers)
         
-        if keys[pygame.K_SPACE]:
-            self.sndShoot.play()
-            self.shell.x = self.rect.centerx
-            self.shell.y = self.rect.centery
-            self.shell.speed = self.charge
-            self.shell.dir = self.dir
-
-class Shell(pygame.sprite.Sprite):
-    #Borrowed from turretFire.py
-    def __init__(self, screen):
-        pygame.sprite.Sprite.__init__(self)
-        self.screen = screen
-        
-        self.image = pygame.image.load("Assets/Images/bullet.png")
-        self.image = pygame.transform.scale(self.image, (10, 10))
+        self.image = self.images[0]
         self.rect = self.image.get_rect()
-        self.rect.center = (-100, -100)
         
-        self.speed = 0
-        self.dir =0
-        self.reset()
-        
-    def update(self):
-        self.calcVector()
-        self.calcPos()
-        self.checkBounds()
-        self.rect.center = (self.x, self.y)
-   
-    def calcVector(self):
-        radians = self.dir * math.pi / 180
-        
-        self.dx = self.speed * math.cos(radians)
-        self.dy = self.speed * math.sin(radians)
-        self.dy *= -1
-    
-    def calcPos(self):
-        self.x += self.dx
-        self.y += self.dy
-    
-    def checkBounds(self):
-        screen = self.screen
-        if self.x > screen.get_width():
-            self.reset()
-        if self.x < 0:
-            self.reset()
-        if self.y > screen.get_height():
-            self.reset()
-        if self.y < 0:
-            self.reset()
-    
-    def reset(self):
-        """ move off stage and stop"""
-        self.x = -100
-        self.y = -100
-        self.speed = 0
+        def update(self):
+            self.rect.move_ip(self.speed, 0)
+            if self.rect.left <= 0:
+                self.kill()
 
 class Squirmbot(pygame.sprite.Sprite):
-    def __init__(self, shell1):
-        self.shell = shell1
+    def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.loadImages()
         
-        self.charge = 30
-        self.dir = 180
+        
         self.frame = 0
         self.delay = 3
         self.pause = 0
@@ -169,7 +124,6 @@ class Squirmbot(pygame.sprite.Sprite):
         self.timer = 90
         
         self.dx = random.randrange(6, 12)
-        #self.dy = random.randrange(-4, 4)
 
         self.image = self.imgList[0]
         self.image = pygame.transform.scale(self.imgList[self.frame], (180, 175))
@@ -204,7 +158,7 @@ class Squirmbot(pygame.sprite.Sprite):
     
     def update(self):
         self.timer -= 1
-        self.checkTimer()
+        #self.checkTimer()
         self.pause += 1
         if self.pause >= self.delay:
             self.pause = 0
@@ -216,76 +170,22 @@ class Squirmbot(pygame.sprite.Sprite):
                 
             self.image = pygame.transform.scale(self.imgList[self.frame], (180, 175))
     
-        #moves the coins in a direction set through the rest function
-        #self.rect.centery += self.dy
+        #moves in a direction set through the rest function
         self.rect.centerx -= self.dx
-        if self.rect.right < (screen.get_width() - 800):
+        if (self.rect.right < (screen.get_width() - 800)) or (self.Life == 0):
             self.reset()
             
-    def checkTimer(self):
-        if (self.timer <= 0) or (self.shell.x <= -50):
-            self.sndShoot.play()
-            self.shell.x = self.rect.centerx
-            self.shell.y = self.rect.centery
-            self.shell.speed = self.charge
-            self.shell.dir = self.dir   
+    #def checkTimer(self):
+        #if self.timer <= 0:
+            #self.sndShoot.play()   
             
     def reset(self):
-        self.rect.right = 1000
         self.rect.centery = random.randrange(100, screen.get_height())
-        #coin movement is randomized based on ranges provided
+        self.rect.right = 1000        
+        #movement is randomized based on ranges provided
         self.dx = random.randrange(3, 9)
         self.timer = 90
-
-class Shell1(pygame.sprite.Sprite):
-    #Borrowed from turretFire.py
-    def __init__(self, screen):
-        pygame.sprite.Sprite.__init__(self)
-        self.screen = screen
-        
-        self.image = pygame.image.load("Assets/Images/bullet1.png")
-        self.image = pygame.transform.scale(self.image, (47, 7))
-        self.rect = self.image.get_rect()
-        self.rect.center = (-100, -100)
-        
-        self.speed = 0
-        self.dir =0
-        self.reset()
-        
-    def update(self):
-        self.calcVector()
-        self.calcPos()
-        self.checkBounds()
-        self.rect.center = (self.x, self.y)
-   
-    def calcVector(self):
-        radians = self.dir * math.pi / 180
-        
-        self.dx = self.speed * math.cos(radians)
-        self.dy = self.speed * math.sin(radians)
-        self.dy *= -1
-    
-    def calcPos(self):
-        self.x += self.dx
-        self.y += self.dy
-    
-    def checkBounds(self):
-        screen = self.screen
-        if self.x > screen.get_width():
-            self.reset()
-        if self.x < 0:
-            self.reset()
-        if self.y > screen.get_height():
-            self.reset()
-        if self.y < 0:
-            self.reset()
-    
-    def reset(self):
-        """ move off stage and stop"""
-        self.x = -100
-        self.y = -100
-        self.speed = 0
-
+        self.Life = 3
 
 class Crunchflyer(pygame.sprite.Sprite):
     def __init__(self):
@@ -336,22 +236,17 @@ class Crunchflyer(pygame.sprite.Sprite):
             self.image = pygame.transform.scale(self.imgList[self.frame], (104, 66))
     
         #moves the enemy in a direction set through the rest function
-#        self.followMouse()
+
         self.rect.centerx -= self.dx
         self.rect.centery -= self.dy
         if self.rect.right < (screen.get_width() - 800):
             self.reset()        
-    
-#    def followMouse(self):
-#        (mouseX, mouseY) = pygame.mouse.get_pos()
-#        self.dx = self.rect.centerx - mouseX
-#        self.dy = self.rect.centery - mouseY
-#        self.dy *= -1
+
             
     def reset(self):
         self.rect.right = 1000
         self.rect.centery = random.randrange(100, screen.get_height())
-        #coin movement is randomized based on ranges provided
+        #movement is randomized based on ranges provided
         self.dx = random.randrange(12, 18)
         self.dy = random.randrange(-4, 4)
 
@@ -537,18 +432,12 @@ def game():
         background.fill((0, 0, 0))
         screen.blit(background, (0, 0))
         
-        ship_bullets = []
-        for shell in range(1, 10):
-            shell = Shell(screen)
-            ship_bullets.append(shell)
+        Bullet.images = [load_image('bullet.gif')]
+
+        bullets = pygame.sprite.Group()
                 
-        #shell = Shell(screen)
-        shell1 = Shell1(screen)
-        ship = Ship(shell)
+        ship = Ship()
         paper = Paper()
-        
-        #cloud = Cloud()
-        #cloud1 = Cloud1()
         
         clouds = []
         for cloud in range(1, 4):
@@ -560,15 +449,12 @@ def game():
             cloud1 = Cloud1()
             clouds1.append(cloud1)
         
-        
-        #squirmy = Squirmbot(shell1)
         squirmies = []
         for squirmy in range (1, 3):
-            squirmy = Squirmbot(shell1)
+            squirmy = Squirmbot()
             squirmies.append(squirmy)  
            
         
-        #crunchy = Crunchflyer()
         crunchies = []
         for crunchy in range (1, 4):
             crunchy = Crunchflyer()
@@ -578,15 +464,15 @@ def game():
         
         mountain = Mountain()
         
-        #health = Healthbar()
         scoreboard = Scoreboard()
         
         scoreSprite = pygame.sprite.Group(scoreboard)
-        allSprites = pygame.sprite.OrderedUpdates(paper, mountain, clouds, ship_bullets, ship, clouds1)
+        allSprites = pygame.sprite.OrderedUpdates(paper, mountain, clouds, ship, clouds1)
         helpSprites = pygame.sprite.OrderedUpdates(healthPack)
         enemySprites = pygame.sprite.OrderedUpdates(squirmies)
-        crunchSprites = pygame.sprite.OrderedUpdates(crunchies)
-        #setSprites = pygame.sprite.OrderedUpdates(cloud, cloud1)        
+        crunchSprites = pygame.sprite.OrderedUpdates(crunchies)        
+        
+        Bullet.containers = bullets, allSprites
         
         clock = pygame.time.Clock()
         keepGoing = True
@@ -601,44 +487,41 @@ def game():
                     if event.key == pygame.K_ESCAPE:
                         paper.sndIntro.stop()
                         keepGoing = False
-            
-            hitBot = pygame.sprite.collide_mask(ship, squirmy)
+            ########################            
+            #adapted from aliens.py (built-in pygame example)
+            #handle player input
+            keystate = pygame.key.get_pressed()
+            firing = keystate[K_SPACE]
+            if not ship.reloading and firing and len(bullets) < ship.maxBullets:
+                Bullet(ship.get_pos())
+                ship.sndShoot.play()
+            ship.reloading = firing
+            ########################
+            ########################
+            hitBot = pygame.sprite.spritecollide(ship, enemySprites, False)
             if hitBot:
-                #ship.sndCrash.play()
+                ship.sndCrash.play()
                 scoreboard.health -= 1
+                for theBot in hitBot:
+                    theBot.Life -= 3
                 if scoreboard.health <= 0:
                     paper.sndIntro.stop()
                     keepGoing = False
-                for theBot in hitBot:
-                    theBot.reset()
-                    theBot.Life = 3
+                
                     
             crunchHit = pygame.sprite.spritecollide(ship, crunchSprites, False)
             if crunchHit:
-                #mario.sndCoin.play()
+                ship.sndCrash.play()
                 scoreboard.health -= 1
                 if scoreboard.health <= 0:
                     paper.sndIntro.stop()
                     keepGoing = False
                 for theCrunch in crunchHit:
                     theCrunch.reset()
-                    
-            bulletHit = pygame.sprite.spritecollide(shell, enemySprites, False)
-            if bulletHit:
-                for theBot in bulletHit:
-                    scoreboard.score += 100
-                    shell.reset()
-                    theBot.Life -= 1
-                    if theBot.Life == 0:
-                        theBot.reset()
-                        theBot.Life = 3
             
-            bulletHit1 = pygame.sprite.spritecollide(shell, crunchSprites, False)
-            if bulletHit1:
-                for theBot in bulletHit1:
-                    scoreboard.score += 50
-                    shell.reset()
-                    theBot.reset()
+            for enemySprites in pygame.sprite.groupcollide(bullets, enemySprites, 1, 1).keys():
+                ship.sndCrash.play()
+                scoreboard.score += 100
                                 
             #Only restores health up to the max amount of health    
             hitHealth = pygame.sprite.collide_mask(ship, healthPack)
@@ -655,12 +538,14 @@ def game():
             enemySprites.update()
             crunchSprites.update()
             helpSprites.update()
-            scoreSprite.update() 
+            scoreSprite.update()
+            bullets.update() 
             allSprites.draw(screen)
             enemySprites.draw(screen)
             crunchSprites.draw(screen)
             helpSprites.draw(screen)                       
             scoreSprite.draw(screen)
+            bullets.draw(screen)
             
             pygame.display.flip()
         
@@ -694,7 +579,7 @@ def instructions(score):
     "",
     "Good luck!",
     "",
-    "Space to Start, Escape to Quit..."
+    "Click to Start, Escape to Quit..."
     )
     
     for line in instructions:
@@ -709,11 +594,11 @@ def instructions(score):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 keepGoing = False
-                donePlaying = True
+                donePlaying = True            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                keepGoing = False
+                donePlaying = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    keepGoing = False
-                    donePlaying = False
                 if event.key == pygame.K_ESCAPE:
                     keepGoing = False
                     donePlaying = True
@@ -747,7 +632,7 @@ def postGame(score):
     "",
     "Game Over!",
     "",    
-    "Space to return to Main Menu",
+    "Click to return to Main Menu",
     "or Press Escape to Quit."
     )
     
@@ -764,10 +649,10 @@ def postGame(score):
             if event.type == pygame.QUIT:
                 keepGoing = False
                 donePlaying = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                keepGoing = False
+                donePlaying = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    keepGoing = False
-                    donePlaying = False
                 if event.key == pygame.K_ESCAPE:
                     keepGoing = False
                     donePlaying = True
