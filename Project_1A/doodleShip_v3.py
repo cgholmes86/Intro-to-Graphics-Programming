@@ -42,7 +42,7 @@ class Ship(pygame.sprite.Sprite):
             print("problem with sound")
         else:
             pygame.mixer.init(48000, 16, 2, 4096)
-            self.sndMusic = pygame.mixer.Sound("Assets/Sound/heavy.ogg")
+            self.sndMusic = pygame.mixer.Sound("Assets/Sound/true_level1.ogg")
             self.sndShoot = pygame.mixer.Sound("Assets/Sound/ship_shoot.ogg")
             self.sndShoot.set_volume(0.5)
             self.sndMusic.play(-1)

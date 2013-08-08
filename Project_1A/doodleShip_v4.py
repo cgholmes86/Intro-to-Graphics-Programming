@@ -51,7 +51,7 @@ class Ship(pygame.sprite.Sprite):
             print("problem with sound")
         else:
             pygame.mixer.init(48000, 16, 2, 4096)
-            self.sndMusic = pygame.mixer.Sound("Assets/Sound/heavy.ogg")
+            self.sndMusic = pygame.mixer.Sound("Assets/Sound/true_level1.ogg")
             self.sndShoot = pygame.mixer.Sound("Assets/Sound/ship_shoot.ogg")
             self.sndCrash = pygame.mixer.Sound("Assets/Sound/ship_hit.ogg")
             self.sndCrash.set_volume(0.2)
@@ -186,6 +186,21 @@ class Squirmbot(pygame.sprite.Sprite):
         self.dx = random.randrange(3, 9)
         self.timer = 90
         self.Life = 3
+
+
+class CyberBullet(pygame.sprite.Sprite):
+    speed = 9
+    images = []
+    def __init__(self, squirmy):
+        pygame.sprite.Sprite.__init__(self, self.containers)
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(midleft=
+                    squirmy.rect.move(-5,0).midleft)
+
+    def update(self):
+        self.rect.move_ip(0, self.speed)
+        if self.rect.left <= -20:
+            self.kill()
 
 class Crunchflyer(pygame.sprite.Sprite):
     def __init__(self):
@@ -433,8 +448,11 @@ def game():
         screen.blit(background, (0, 0))
         
         Bullet.images = [load_image('bullet.gif')]
+        CyberBullet.images = [load_image('bullet1.gif')]
 
         bullets = pygame.sprite.Group()
+        cyberBullets = pygame.sprite.Group()
+        lastSquirmy = pygame.sprite.GroupSingle()
                 
         ship = Ship()
         paper = Paper()
@@ -473,6 +491,8 @@ def game():
         crunchSprites = pygame.sprite.OrderedUpdates(crunchies)        
         
         Bullet.containers = bullets, allSprites
+        CyberBullet.containers = cyberBullets, allSprites
+        
         
         clock = pygame.time.Clock()
         keepGoing = True
@@ -519,9 +539,21 @@ def game():
                 for theCrunch in crunchHit:
                     theCrunch.reset()
             
+            #launches cyber bullet?
+            if squirmy.timer <= 0:
+                CyberBullet(lastSquirmy.sprite)
+            
             for enemySprites in pygame.sprite.groupcollide(bullets, enemySprites, 1, 1).keys():
                 ship.sndCrash.play()
                 scoreboard.score += 100
+                
+            for crunchSprites in pygame.sprite.groupcollide(bullets, crunchSprites, 1, 1).keys():
+                ship.sndCrash.play()
+                scoreboard.score += 50
+                
+            for cyberBullet in pygame.sprite.spritecollide(ship, cyberBullets, 1):
+                ship.sndCrash.play()
+                scoreboard.health -= 1
                                 
             #Only restores health up to the max amount of health    
             hitHealth = pygame.sprite.collide_mask(ship, healthPack)
