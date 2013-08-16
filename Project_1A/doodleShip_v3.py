@@ -23,7 +23,7 @@ class Ship(pygame.sprite.Sprite):
         self.loadImages()
         self.screenRect = Rect(0, 0, 800, 600)
         
-        self.charge = 15
+        self.charge = 30 
         self.dir = 0
         self.frame = 0
         self.delay = 0

@@ -18,6 +18,10 @@ screen = pygame.display.set_mode((800, 600))
 class Ship(pygame.sprite.Sprite):
     def __init__(self, shell):        
         pygame.sprite.Sprite.__init__(self)
+        self.shells = []
+        for self.shell in range(10):
+            self.shell = shell
+            self.shells.append(self.shell)
         self.shell = shell
         self.loadImages()
         self.charge = 15
@@ -25,6 +29,7 @@ class Ship(pygame.sprite.Sprite):
         self.frame = 0
         self.delay = 0
         self.pause = 0
+        self.shellcount = 0
         
 
         self.image = self.imgList[0]
@@ -76,14 +81,23 @@ class Ship(pygame.sprite.Sprite):
             self.rect.center = (75, mousey)    
             self.image = pygame.transform.scale(self.imgList[self.frame], (120, 100))
             
+        
+        if self.shells[self.shellcount].inflight == True:
+            ship.shellcount += 1
+            if ship.shellcount >= 10:
+                ship.shellcount = 0
+            
+            
     def checkKeys(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
             self.sndShoot.play()
-            self.shell.x = self.rect.centerx
-            self.shell.y = self.rect.centery
-            self.shell.speed = self.charge
-            self.shell.dir = self.dir
+            self.shells[shell.inflight] = True
+            ship.shells[self.shellcount].x = ship.rect.centerx
+            ship.shell[self.shellcount].y = ship.rect.centery
+            ship.shell[self.shellcount].speed = ship.charge
+            ship.shell[self.shellcount].dir = ship.dir
+            
             
 #Borrowed from turretFire.py
 class Shell(pygame.sprite.Sprite):
@@ -99,6 +113,7 @@ class Shell(pygame.sprite.Sprite):
         self.speed = 0
         self.dir =0
         self.reset()
+        self.inflight = False
         
     def update(self):
         self.calcVector()
@@ -133,6 +148,7 @@ class Shell(pygame.sprite.Sprite):
         self.x = -100
         self.y = -100
         self.speed = 0
+        self.inflight = False
              
 class Squirmbot(pygame.sprite.Sprite):
     def __init__(self):

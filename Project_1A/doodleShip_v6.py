@@ -20,6 +20,7 @@ class Ship(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.shell = shell
         self.loadImages()
+        self.shellcount = 0
         self.charge = 15
         self.dir = 0
         self.frame = 0
@@ -63,7 +64,6 @@ class Ship(pygame.sprite.Sprite):
             self.imgList.append(tmpImg)
     
     def update(self):
-        self.checkKeys()
         self.pause += 1
         if self.pause >= self.delay:
             self.pause = 0
@@ -76,14 +76,7 @@ class Ship(pygame.sprite.Sprite):
             self.rect.center = (75, mousey)    
             self.image = pygame.transform.scale(self.imgList[self.frame], (120, 100))
             
-    def checkKeys(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE]:
-            self.sndShoot.play()
-            self.shell.x = self.rect.centerx
-            self.shell.y = self.rect.centery
-            self.shell.speed = self.charge
-            self.shell.dir = self.dir
+        
             
 #Borrowed from turretFire.py
 class Shell(pygame.sprite.Sprite):
@@ -459,10 +452,14 @@ def game():
         
          #shell = Shell(screen)
         #shell1 = Shell1(screen)
+        
+        
+        #shell = Shell(screen)
+        fired_bullets = []
         ship_bullets = []
-        for shell in range(1, 10):
-            shell = Shell(screen)
-            ship_bullets.append(shell)
+        for shell in range(10):
+           shell = Shell(screen)
+           ship_bullets.append(shell)
                 
         ship = Ship(shell)
         paper = Paper()
@@ -496,7 +493,7 @@ def game():
         scoreboard = Scoreboard()
         
         scoreSprite = pygame.sprite.Group(scoreboard)
-        allSprites = pygame.sprite.OrderedUpdates(paper, mountain, clouds, ship_bullets, ship, clouds1)
+        allSprites = pygame.sprite.OrderedUpdates(paper, mountain, clouds, shell, ship, clouds1)
         helpSprites = pygame.sprite.OrderedUpdates(healthPack)
         enemySprites = pygame.sprite.OrderedUpdates(squirmies)
         crunchSprites = pygame.sprite.OrderedUpdates(crunchies)        
@@ -514,6 +511,17 @@ def game():
                     if event.key == pygame.K_ESCAPE:
                         paper.sndIntro.stop()
                         keepGoing = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    ship.sndShoot.play()
+                    #ship_bullets.append(shell)
+                    ship.shells[self.shellcount].x = ship.rect.centerx
+                    ship.shell[self.shellcount].y = ship.rect.centery
+                    ship.shell[self.shellcount].speed = ship.charge
+                    ship.shell[self.shellcount].dir = ship.dir
+                    ship.shellcount += 1
+                    if ship.shellcount >= 10:
+                        ship.shellcount = 0
+                    print ship_bullets
             
             hitBot = pygame.sprite.spritecollide(ship, enemySprites, False)
             if hitBot:
@@ -538,7 +546,8 @@ def game():
                     
             bulletHit = pygame.sprite.spritecollide(shell, enemySprites, False)
             if bulletHit:
-                for theBot in bulletHit:
+                for theBot in bulletHit:                    
+                    fired_bullets.append(shell)
                     shell.reset()
                     theBot.Life -= 1
                     if theBot.Life == 0:
@@ -549,9 +558,19 @@ def game():
             bulletHit1 = pygame.sprite.spritecollide(shell, crunchSprites, False)
             if bulletHit1:
                 for theBot in bulletHit1:
+                    fired_bullets.append(shell)
                     scoreboard.score += 50
                     shell.reset()
                     theBot.reset()
+                    
+            for shell in fired_bullets:
+                shell.reset()
+                if (shell.x and shell.y) <= -100:
+                    fired_bullets.pop()
+            
+            for shell in ship_bullets:
+                if (shell.x and shell.y) <= -100:
+                    ship_bullets.pop()
                                 
             #Only restores health up to the max amount of health    
             hitHealth = pygame.sprite.collide_mask(ship, healthPack)
@@ -565,12 +584,14 @@ def game():
             
             #allSprites.clear(screen, background)
             allSprites.update()
+            #bulletSprites.update()
             enemySprites.update()
             crunchSprites.update()
             helpSprites.update()
             scoreSprite.update()
-
+             
             allSprites.draw(screen)
+            #bulletSprites.draw(screen)
             enemySprites.draw(screen)
             crunchSprites.draw(screen)
             helpSprites.draw(screen)                       
